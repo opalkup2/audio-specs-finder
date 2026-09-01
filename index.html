@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#123a5b">
+  <title>Audio Specs Finder</title>
+  <style>
+    :root { --ink:#16212b; --muted:#5c6872; --line:#d7e0e7; --page:#f3f6f8; --card:#fff; --brand:#12639f; --brand-dark:#0b4e80; --soft:#eaf3fa; --good:#176534; --bad:#a32525; --warn:#8a5700; font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; color:var(--ink); background:var(--page); }
+    * { box-sizing:border-box; } body { margin:0; min-width:320px; } button,input,textarea { font:inherit; } button { touch-action:manipulation; }
+    main { width:min(760px,100%); margin:0 auto; padding:20px 16px calc(32px + env(safe-area-inset-bottom)); }
+    header { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin:3px 0 18px; } h1 { font-size:1.55rem; margin:0; letter-spacing:-.02em; } h2 { font-size:1.08rem; margin:0 0 12px; } h3 { font-size:1rem; margin:0 0 8px; } p { line-height:1.5; }
+    .sub { margin:5px 0 0; color:var(--muted); font-size:.92rem; } .panel { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px; margin:14px 0; box-shadow:0 1px 2px #1b34420b; }
+    .icon-btn { min-width:44px; min-height:44px; padding:0 12px; border:1px solid var(--line); border-radius:10px; color:var(--brand-dark); background:#fff; font-weight:700; cursor:pointer; }
+    label { display:block; font-weight:650; margin:15px 0 7px; } input[type=text], input[type=password], textarea { width:100%; min-height:46px; border:1px solid #adbac4; border-radius:9px; padding:10px 12px; color:var(--ink); background:#fff; } textarea { min-height:104px; resize:vertical; line-height:1.45; } input:focus,textarea:focus { outline:3px solid #b9dcf4; border-color:var(--brand); }
+    .hint { color:var(--muted); font-size:.87rem; margin:6px 0 0; line-height:1.42; } .actions { display:grid; gap:10px; margin-top:18px; } button.primary,button.secondary,button.danger { min-height:50px; border:0; border-radius:10px; padding:10px 16px; font-weight:750; cursor:pointer; } button.primary { color:#fff; background:var(--brand); } button.primary:hover { background:var(--brand-dark); } button.secondary { color:var(--brand-dark); background:var(--soft); } button.danger { color:#8c2020; background:#fff0f0; } button:disabled { cursor:wait; opacity:.62; }
+    .toggle { display:flex; align-items:center; gap:10px; font-weight:600; margin:14px 0 0; } .toggle input { width:22px; height:22px; accent-color:var(--brand); }
+    .settings { display:none; } .settings.open { display:block; } .notice { padding:11px 12px; border-left:4px solid #4a83ad; background:#f0f7fc; border-radius:6px; font-size:.88rem; line-height:1.45; }
+    .photo-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px; } .file-label { min-height:50px; display:flex; align-items:center; justify-content:center; border:1px solid #8db4d0; border-radius:10px; color:var(--brand-dark); background:#f5faff; font-weight:700; cursor:pointer; text-align:center; padding:8px; } .file-label input { position:absolute; width:1px; height:1px; opacity:0; }
+    .photo-preview { position:relative; margin-top:14px; } .photo-preview img { display:block; width:100%; max-height:330px; object-fit:contain; background:#edf1f4; border-radius:10px; border:1px solid var(--line); } .remove-photo { margin-top:8px; min-height:44px; border:0; border-radius:9px; padding:9px 13px; color:#8c2020; background:#fff0f0; font-weight:700; cursor:pointer; }
+    .status { white-space:pre-wrap; overflow-wrap:anywhere; padding:12px; border-radius:9px; background:#edf4fa; border:1px solid #c4dceb; line-height:1.45; } .status.error { background:#fff0f0; border-color:#efbbbb; color:#851d1d; } .status.success { background:#edf8ee; border-color:#b9dfbd; color:#155c27; } .status.warning { background:#fff7e6; border-color:#e9cf92; color:#775000; }
+    .hidden { display:none !important; } .spinner { display:inline-block; width:15px; height:15px; border:2px solid #9fc5df; border-top-color:var(--brand); border-radius:50%; animation:spin .75s linear infinite; vertical-align:-2px; margin-right:7px; } @keyframes spin { to { transform:rotate(360deg); } }
+    .result-head { display:flex; gap:10px; justify-content:space-between; align-items:center; margin-bottom:12px; } .result-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:16px; } .section { border:1px solid var(--line); border-radius:11px; padding:14px; margin:11px 0; } .section h3 { color:#124d79; } .section p { white-space:pre-wrap; margin:0; line-height:1.55; } .sources { padding-left:21px; margin:7px 0 0; } .sources li { margin:9px 0; overflow-wrap:anywhere; } .sources a { color:#075a99; } .grounding-note { margin:0 0 12px; }
+    @media (min-width:600px) { main { padding-top:34px; } .actions { grid-template-columns:1fr 1fr; } .actions .primary { grid-column:1/-1; } .settings-actions { grid-template-columns:repeat(3,1fr); } }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div><h1>Audio Specs Finder</h1><p class="sub">ค้นข้อมูลเครื่องเสียงมือสองก่อนตัดสินใจซื้อ</p></div>
+      <button id="settingsButton" class="icon-btn" type="button" aria-expanded="false" aria-controls="settingsPanel">Settings</button>
+    </header>
+
+    <section id="settingsPanel" class="panel settings" aria-label="Gemini settings">
+      <h2>Gemini Settings</h2>
+      <label for="apiKey">Gemini API Key</label>
+      <input id="apiKey" type="password" autocomplete="off" spellcheck="false" placeholder="Paste your API key">
+      <label for="modelId">Model ID</label>
+      <input id="modelId" type="text" autocomplete="off" spellcheck="false" placeholder="e.g. gemini-...">
+      <label class="toggle" for="useGrounding"><input id="useGrounding" type="checkbox" checked><span>Use Google Search grounding</span></label>
+      <p class="hint">Model ID is fully editable. The chosen model must support image input and/or Google Search when those options are used.</p>
+      <p id="storageNotice" class="notice">API keys are stored locally in this browser. Do not use this tool on a shared/public device.</p>
+      <div class="actions settings-actions">
+        <button id="testConnection" class="secondary" type="button">Test Connection</button>
+        <button id="saveSettings" class="secondary" type="button">Save Settings</button>
+        <button id="clearKey" class="danger" type="button">Clear API Key</button>
+      </div>
+      <div id="settingsStatus" class="status hidden" role="status"></div>
+    </section>
+
+    <section id="searchPanel" class="panel" aria-label="Research audio equipment">
+      <label for="query">Brand / Model / Search query</label>
+      <textarea id="query" placeholder="Example: Yamaha A-S501 or JBL L100 Century"></textarea>
+
+      <label>Take / Choose Photo <span class="hint">(optional)</span></label>
+      <div class="photo-actions">
+        <label class="file-label">Take Photo<input id="cameraInput" type="file" accept="image/*" capture="environment"></label>
+        <label class="file-label">Choose Photo<input id="imageInput" type="file" accept="image/*"></label>
+      </div>
+      <p id="imageInfo" class="hint">No photo selected.</p>
+      <div id="photoPreview" class="photo-preview hidden"><img id="previewImage" alt="Selected equipment photo preview"><button id="removePhoto" class="remove-photo" type="button">Remove Photo</button></div>
+
+      <div class="actions"><button id="searchButton" class="primary" type="button">Search Audio Equipment</button></div>
+      <p class="hint">For the best identification, include the brand/model in the text or photograph the front panel and rear model label.</p>
+    </section>
+
+    <section id="progressPanel" class="panel hidden" aria-live="polite"><div id="progressStatus" class="status"></div></section>
+
+    <section id="resultPanel" class="panel hidden" aria-live="polite">
+      <div class="result-head"><h2>Research Result</h2></div>
+      <div id="verificationNotice" class="status hidden"></div>
+      <div id="resultSections"></div>
+      <section id="sourcesPanel" class="section hidden"><h3>Sources returned by Gemini</h3><p id="searchQueries" class="hint hidden"></p><ul id="sources" class="sources"></ul></section>
+      <div class="result-actions"><button id="copyResult" class="secondary" type="button">Copy Result</button><button id="newSearch" class="secondary" type="button">New Search</button></div>
+    </section>
+
+    <section id="errorPanel" class="panel hidden" role="alert"><h2>Unable to complete research</h2><div id="errorMessage" class="status error"></div><div class="result-actions"><button id="retrySearch" class="primary" type="button">Retry</button><button id="openSettingsFromError" class="secondary" type="button">Open Settings</button></div></section>
+  </main>
+
+  <script>
+    (() => {
+      'use strict';
+      const API_URL = 'https://generativelanguage.googleapis.com/v1beta/interactions';
+      const STORAGE_KEY = 'audioSpecsFinder.settings.v1';
+      const REQUEST_TIMEOUT = 60000;
+      const MAX_UPLOAD_BYTES = 7 * 1024 * 1024;
+      const MAX_IMAGE_EDGE = 1920;
+      const $ = id => document.getElementById(id);
+      const ui = { settingsButton:$('settingsButton'), settingsPanel:$('settingsPanel'), apiKey:$('apiKey'), modelId:$('modelId'), grounding:$('useGrounding'), settingsStatus:$('settingsStatus'), test:$('testConnection'), save:$('saveSettings'), clear:$('clearKey'), storageNotice:$('storageNotice'), query:$('query'), camera:$('cameraInput'), image:$('imageInput'), imageInfo:$('imageInfo'), preview:$('photoPreview'), previewImage:$('previewImage'), removePhoto:$('removePhoto'), search:$('searchButton'), progressPanel:$('progressPanel'), progress:$('progressStatus'), resultPanel:$('resultPanel'), verification:$('verificationNotice'), resultSections:$('resultSections'), sourcesPanel:$('sourcesPanel'), sources:$('sources'), queries:$('searchQueries'), errorPanel:$('errorPanel'), error:$('errorMessage'), retry:$('retrySearch'), errorSettings:$('openSettingsFromError'), copy:$('copyResult'), newSearch:$('newSearch') };
+      let selectedImage = null;
+      let lastRequest = null;
+      let storageAvailable = true;
+      let lastCopyText = '';
+
+      function show(el, visible = true) { el.classList.toggle('hidden', !visible); }
+      function setStatus(el, text, type = '') { el.textContent = text; el.className = `status ${type}`.trim(); show(el); }
+      function normalizeModel(value) { return value.trim().replace(/^models\//, ''); }
+      function setBusy(busy, message = '') { ui.search.disabled = busy; ui.test.disabled = busy; ui.save.disabled = busy; ui.clear.disabled = busy; if (busy) { ui.progress.innerHTML = ''; const spinner = document.createElement('span'); spinner.className = 'spinner'; ui.progress.append(spinner, document.createTextNode(message)); show(ui.progressPanel); } }
+      function hideFeedback() { show(ui.resultPanel, false); show(ui.errorPanel, false); show(ui.progressPanel, false); }
+      function currentSettings() { return { apiKey: ui.apiKey.value.trim(), model: normalizeModel(ui.modelId.value), useGrounding: ui.grounding.checked }; }
+
+      function loadSettings() {
+        try {
+          const saved = localStorage.getItem(STORAGE_KEY);
+          if (saved) { const values = JSON.parse(saved); ui.apiKey.value = values.apiKey || ''; ui.modelId.value = values.model || ''; ui.grounding.checked = values.useGrounding !== false; }
+        } catch (_) { storageAvailable = false; ui.storageNotice.textContent = 'Local storage is unavailable in this browser. Settings work for this session but will not persist after the page is closed.'; }
+      }
+      function saveSettings(showMessage = true) {
+        const values = currentSettings();
+        if (!values.model) { setStatus(ui.settingsStatus, 'Enter a Model ID before saving settings.', 'error'); return false; }
+        if (!values.apiKey) { setStatus(ui.settingsStatus, 'Enter an API Key before saving settings.', 'error'); return false; }
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(values)); } catch (_) { storageAvailable = false; ui.storageNotice.textContent = 'Local storage is unavailable in this browser. Settings work for this session but will not persist after the page is closed.'; }
+        if (showMessage) setStatus(ui.settingsStatus, storageAvailable ? 'Settings saved locally in this browser.' : 'Settings are available for this session only.', 'success');
+        return true;
+      }
+      function openSettings() { ui.settingsPanel.classList.add('open'); ui.settingsButton.setAttribute('aria-expanded', 'true'); ui.settingsPanel.scrollIntoView({ behavior:'smooth', block:'start' }); }
+      function toggleSettings() { const opening = !ui.settingsPanel.classList.contains('open'); ui.settingsPanel.classList.toggle('open', opening); ui.settingsButton.setAttribute('aria-expanded', String(opening)); }
+
+      async function compressImage(file) {
+        if (!file.type.startsWith('image/')) throw new Error('Choose an image file (JPG, PNG, WebP, or similar).');
+        if (file.size > MAX_UPLOAD_BYTES) throw new Error('This image is larger than 7 MB. Choose a smaller image before sending it.');
+        const objectUrl = URL.createObjectURL(file);
+        try {
+          const image = await new Promise((resolve, reject) => { const img = new Image(); img.onload = () => resolve(img); img.onerror = () => reject(new Error('This image could not be decoded.')); img.src = objectUrl; });
+          const ratio = Math.min(1, MAX_IMAGE_EDGE / Math.max(image.naturalWidth, image.naturalHeight));
+          const width = Math.max(1, Math.round(image.naturalWidth * ratio)); const height = Math.max(1, Math.round(image.naturalHeight * ratio));
+          const canvas = document.createElement('canvas'); canvas.width = width; canvas.height = height;
+          const context = canvas.getContext('2d'); if (!context) throw new Error('Image processing is not supported by this browser.');
+          context.drawImage(image, 0, 0, width, height);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.88);
+          const data = dataUrl.slice(dataUrl.indexOf(',') + 1);
+          if (!data) throw new Error('Image compression failed.');
+          return { data, mime_type:'image/jpeg', previewUrl:dataUrl, name:file.name, width, height };
+        } finally { URL.revokeObjectURL(objectUrl); }
+      }
+      async function chooseImage(file) {
+        if (!file) return;
+        try { ui.imageInfo.textContent = 'Preparing image…'; selectedImage = await compressImage(file); ui.previewImage.src = selectedImage.previewUrl; ui.previewImage.alt = `Preview of ${selectedImage.name}`; show(ui.preview); ui.imageInfo.textContent = `${selectedImage.name} — resized to ${selectedImage.width} × ${selectedImage.height} for upload.`; }
+        catch (error) { selectedImage = null; ui.camera.value = ''; ui.image.value = ''; ui.imageInfo.textContent = error.message; show(ui.preview, false); }
+      }
+      function removeImage() { selectedImage = null; ui.camera.value = ''; ui.image.value = ''; ui.previewImage.removeAttribute('src'); show(ui.preview, false); ui.imageInfo.textContent = 'No photo selected.'; }
+
+      function researchPrompt(query, hasImage) {
+        return `You are researching second-hand audio equipment for a buyer standing in a shop. The user's query is: "${query || '(no text query provided; rely on the image)'}". ${hasImage ? 'An equipment photo is attached.' : ''}
+
+You must research factual claims on the web before answering when Google Search is available. Prefer official manufacturer manuals, catalogs, and service manuals; use reputable audio publications and established databases secondarily. Do not invent any specification or citation. If sources conflict, say so. Marketplace listings are not primary technical sources.
+
+If there is an image, first assess identification. State only visible brand, model, type, label text, and exterior details. Never infer internal electronic health from an exterior image. If identification is uncertain, explain why and recommend the most useful extra photo (rear label, model plate, front panel, or serial sticker). Do not claim a model is identified with certainty unless the visual evidence supports it.
+
+Return plain text only. Use these exact markdown headings, in this exact order, even if a section has limited data:
+## Model Identification
+## Technical Specifications
+## History / Context
+## Sound Character
+## Suitable For
+## Pros
+## Cons
+## Second-Hand Inspection Checklist
+## Buying Summary
+
+Under Model Identification include Brand, Model, Type, Year introduced / production period, Country of manufacture (only if reliably known), and Series / related models.
+In Technical Specifications, include only fields relevant to this equipment type. Write "ไม่พบข้อมูลยืนยัน" for each important unverifiable specification. Clearly label subjective sound impressions as subjective/reported listening impressions, not facts. Do not call normal products legendary, rare, or collectible without reliable evidence. In Buying Summary, do not say simply buy/don't buy. Mention that value-for-money cannot be judged fully without an asking price if none was provided. Write the response in Thai, retaining official model names and technical terms where helpful.`;
+      }
+
+      async function callGemini({ prompt, image, settings, testOnly = false }) {
+        const input = [{ type:'text', text:prompt }];
+        if (image) input.push({ type:'image', data:image.data, mime_type:image.mime_type });
+        const body = { model:settings.model, input };
+        if (settings.useGrounding) body.tools = [{ type:'google_search' }];
+        const controller = new AbortController(); const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
+        try {
+          const response = await fetch(API_URL, { method:'POST', mode:'cors', headers:{ 'Content-Type':'application/json', 'x-goog-api-key':settings.apiKey }, body:JSON.stringify(body), signal:controller.signal });
+          const raw = await response.text(); let data = null; try { data = JSON.parse(raw); } catch (_) { /* preserve readable raw error */ }
+          if (!response.ok) { const error = new Error(data?.error?.message || raw || `HTTP ${response.status}`); error.httpStatus = response.status; error.apiStatus = data?.error?.status; throw error; }
+          return data;
+        } finally { clearTimeout(timeout); }
+      }
+      function outputBlocks(data) { return (data?.steps || []).filter(step => step.type === 'model_output').flatMap(step => step.content || []).filter(item => item.type === 'text'); }
+      function outputText(data) { return outputBlocks(data).map(item => item.text || '').filter(Boolean).join('\n\n'); }
+      function citations(data) { const seen = new Set(); const items = []; outputBlocks(data).forEach(block => (block.annotations || []).forEach(note => { if (note.type === 'url_citation' && /^https?:\/\//i.test(note.url || '') && !seen.has(note.url)) { seen.add(note.url); items.push({ url:note.url, title:note.title || note.url }); } })); return items; }
+      function searchQueries(data) { return (data?.steps || []).filter(step => step.type === 'google_search_call').flatMap(step => step.arguments?.queries || []); }
+      function hasGrounding(data) { return (data?.steps || []).some(step => step.type === 'google_search_call' || step.type === 'google_search_result') || citations(data).length > 0; }
+
+      function renderResult(text, sourceItems, queryItems, grounded) {
+        ui.resultSections.replaceChildren(); ui.sources.replaceChildren(); show(ui.resultPanel);
+        const headingPattern = /^##\s+(.+)$/gm; const matches = [...text.matchAll(headingPattern)];
+        const sections = matches.length ? matches.map((match, index) => ({ title:match[1].trim(), body:text.slice(match.index + match[0].length, index + 1 < matches.length ? matches[index + 1].index : text.length).trim() })) : [{ title:'Research Result', body:text }];
+        sections.forEach(section => { const card = document.createElement('section'); card.className = 'section'; const heading = document.createElement('h3'); heading.textContent = section.title; const content = document.createElement('p'); content.textContent = section.body || 'ไม่พบข้อมูลยืนยัน'; card.append(heading, content); ui.resultSections.append(card); });
+        if (lastRequest?.settings.useGrounding && !grounded) setStatus(ui.verification, 'Grounding was requested, but Gemini did not return Google Search grounding information. The factual research could not be fully verified as web-grounded.', 'warning'); else if (grounded) setStatus(ui.verification, 'Google Search grounding information was returned. Sources from the response are listed below.', 'success'); else show(ui.verification, false);
+        if (sourceItems.length || queryItems.length) { if (queryItems.length) { ui.queries.textContent = `Search queries: ${queryItems.join(' · ')}`; show(ui.queries); } else show(ui.queries, false); sourceItems.forEach((source, index) => { const li = document.createElement('li'); const a = document.createElement('a'); a.href = source.url; a.target = '_blank'; a.rel = 'noopener noreferrer'; a.textContent = `${index + 1}. ${source.title}`; li.append(a); ui.sources.append(li); }); show(ui.sourcesPanel); } else show(ui.sourcesPanel, false);
+        lastCopyText = text + (sourceItems.length ? '\n\nSources\n' + sourceItems.map((s,i) => `${i+1}. ${s.title} — ${s.url}`).join('\n') : '');
+      }
+      function friendlyError(error) {
+        if (error.name === 'AbortError') return 'The request timed out after 60 seconds. Check 4G/Wi-Fi and try again.';
+        if (error instanceof TypeError) return 'Network or CORS failure. Confirm this page is served by GitHub Pages over HTTPS, your internet connection works, and the Gemini API permits this browser request.';
+        const status = error.httpStatus; const detail = error.message || 'Unknown error.';
+        if (status === 400) return `Request rejected. The selected model may not support the requested image or Google Search capability. ${detail}`;
+        if (status === 401 || status === 403) return `API key or permission problem. Check the API Key, API restrictions, billing, and Gemini API access. ${detail}`;
+        if (status === 404) return `Model not found. Check the Model ID in Settings. ${detail}`;
+        if (status === 413) return `Request too large. Try a smaller photo. ${detail}`;
+        if (status === 429) return `Quota or rate limit reached. Wait and check quota/billing, then try again. ${detail}`;
+        if (status >= 500) return `Gemini service error (HTTP ${status}). Try again later. ${detail}`;
+        return detail;
+      }
+      async function runSearch() {
+        hideFeedback(); const settings = currentSettings(); const query = ui.query.value.trim();
+        if (!settings.apiKey || !settings.model) { setStatus(ui.error, 'Enter the Gemini API Key and Model ID in Settings before searching.', 'error'); show(ui.errorPanel); openSettings(); return; }
+        if (!query && !selectedImage) { setStatus(ui.error, 'Enter a brand/model/search query, select a photo, or both.', 'error'); show(ui.errorPanel); return; }
+        lastRequest = { settings, query, image:selectedImage }; setBusy(true, 'Researching model, specifications, and second-hand checks…');
+        try { const data = await callGemini({ prompt:researchPrompt(query, Boolean(selectedImage)), image:selectedImage, settings }); const text = outputText(data); if (!text) throw new Error('Gemini returned no readable text response. Try a different Model ID.'); renderResult(text, citations(data), searchQueries(data), hasGrounding(data)); }
+        catch (error) { setStatus(ui.error, friendlyError(error), 'error'); show(ui.errorPanel); }
+        finally { setBusy(false); show(ui.progressPanel, false); }
+      }
+      async function testConnection() {
+        const settings = currentSettings();
+        if (!settings.apiKey || !settings.model) { setStatus(ui.settingsStatus, 'Enter both API Key and Model ID before testing.', 'error'); return; }
+        setBusy(true, 'Testing Gemini connection…'); setStatus(ui.settingsStatus, 'Sending a small test request…');
+        try { const prompt = settings.useGrounding ? 'Use Google Search if available. Reply only: connection test successful.' : 'Reply only: connection test successful.'; const data = await callGemini({ prompt, settings, testOnly:true }); const grounded = hasGrounding(data); const suffix = settings.useGrounding ? (grounded ? ' Google Search grounding was returned.' : ' The connection works, but this response did not return grounding information; check model/tool availability.') : ''; setStatus(ui.settingsStatus, `Connection successful. ${outputText(data).slice(0,180) || 'Gemini returned a response.'}${suffix}`, grounded || !settings.useGrounding ? 'success' : 'warning'); }
+        catch (error) { setStatus(ui.settingsStatus, friendlyError(error), 'error'); }
+        finally { setBusy(false); show(ui.progressPanel, false); }
+      }
+      async function copyResult() { try { await navigator.clipboard.writeText(lastCopyText); ui.copy.textContent = 'Copied'; setTimeout(() => { ui.copy.textContent = 'Copy Result'; }, 1400); } catch (_) { setStatus(ui.error, 'Copy failed. Select and copy the text manually.', 'error'); show(ui.errorPanel); } }
+
+      ui.settingsButton.addEventListener('click', toggleSettings); ui.save.addEventListener('click', () => saveSettings()); ui.test.addEventListener('click', testConnection);
+      ui.clear.addEventListener('click', () => { ui.apiKey.value = ''; try { const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); saved.apiKey = ''; localStorage.setItem(STORAGE_KEY, JSON.stringify(saved)); } catch (_) {} setStatus(ui.settingsStatus, 'API Key cleared from this page and local storage.', 'success'); });
+      ui.camera.addEventListener('change', event => chooseImage(event.target.files[0])); ui.image.addEventListener('change', event => chooseImage(event.target.files[0])); ui.removePhoto.addEventListener('click', removeImage);
+      ui.search.addEventListener('click', runSearch); ui.retry.addEventListener('click', runSearch); ui.errorSettings.addEventListener('click', openSettings); ui.copy.addEventListener('click', copyResult); ui.newSearch.addEventListener('click', () => { hideFeedback(); ui.query.focus(); window.scrollTo({ top:0, behavior:'smooth' }); });
+      loadSettings();
+    })();
+  </script>
+</body>
+</html>
