@@ -20,7 +20,9 @@
     .photo-preview { position:relative; margin-top:14px; } .photo-preview img { display:block; width:100%; max-height:330px; object-fit:contain; background:#edf1f4; border-radius:10px; border:1px solid var(--line); } .remove-photo { margin-top:8px; min-height:44px; border:0; border-radius:9px; padding:9px 13px; color:#8c2020; background:#fff0f0; font-weight:700; cursor:pointer; }
     .status { white-space:pre-wrap; overflow-wrap:anywhere; padding:12px; border-radius:9px; background:#edf4fa; border:1px solid #c4dceb; line-height:1.45; } .status.error { background:#fff0f0; border-color:#efbbbb; color:#851d1d; } .status.success { background:#edf8ee; border-color:#b9dfbd; color:#155c27; } .status.warning { background:#fff7e6; border-color:#e9cf92; color:#775000; }
     .hidden { display:none !important; } .spinner { display:inline-block; width:15px; height:15px; border:2px solid #9fc5df; border-top-color:var(--brand); border-radius:50%; animation:spin .75s linear infinite; vertical-align:-2px; margin-right:7px; } @keyframes spin { to { transform:rotate(360deg); } }
-    .result-head { display:flex; gap:10px; justify-content:space-between; align-items:center; margin-bottom:12px; } .result-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:16px; } .section { border:1px solid var(--line); border-radius:11px; padding:14px; margin:11px 0; } .section h3 { color:#124d79; } .section p { white-space:pre-wrap; margin:0; line-height:1.55; } .sources { padding-left:21px; margin:7px 0 0; } .sources li { margin:9px 0; overflow-wrap:anywhere; } .sources a { color:#075a99; } .grounding-note { margin:0 0 12px; }
+    .result-head { display:block; padding:5px 2px 13px; margin-bottom:15px; border-bottom:1px solid var(--line); } .result-head h2 { margin:0; font-size:1.45rem; line-height:1.3; font-weight:800; color:#143d5d; overflow-wrap:anywhere; } .result-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:18px; } .section { border:1px solid #cfdbe4; border-radius:13px; padding:17px; margin:15px 0; background:#fff; box-shadow:0 2px 5px #173c5609; } .section h3 { color:#123f60; font-size:1.15rem; line-height:1.35; margin:0 0 13px; } .section p { white-space:pre-wrap; margin:0; line-height:1.58; font-size:1rem; overflow-wrap:anywhere; } .spec-grid { display:grid; gap:0; } .spec-row { display:grid; grid-template-columns:minmax(112px, .92fr) minmax(0, 1.25fr); gap:14px; padding:11px 0; border-top:1px solid #e3e9ee; font-size:1rem; line-height:1.55; } .spec-row:first-child { border-top:0; padding-top:0; } .spec-label { color:#314e62; font-weight:750; overflow-wrap:anywhere; } .spec-value { color:var(--ink); overflow-wrap:anywhere; min-width:0; } .plain-result-line { font-size:1rem; line-height:1.58; padding:8px 0; overflow-wrap:anywhere; } .finding-list { display:grid; gap:10px; } .finding { display:grid; grid-template-columns:20px minmax(0,1fr); gap:8px; align-items:start; padding:11px 12px; border-radius:9px; font-size:1rem; line-height:1.58; overflow-wrap:anywhere; } .finding-mark { font-weight:800; text-align:center; } .finding.pro { color:#244f39; background:#f1f7f2; border:1px solid #d4e4d7; } .finding.pro .finding-mark { color:#3d7654; } .finding.con { color:#6c3c3c; background:#fdf3f3; border:1px solid #ebd3d3; } .finding.con .finding-mark { color:#9a6262; } .sources { padding-left:21px; margin:7px 0 0; font-size:.93rem; line-height:1.5; } .sources li { margin:10px 0; overflow-wrap:anywhere; } .sources a { color:#075a99; } .grounding-note { margin:0 0 12px; }
+    .result-type { margin:6px 0 0; color:var(--muted); font-size:1rem; line-height:1.5; overflow-wrap:anywhere; }
+    @media (max-width:380px) { .section { padding:14px; } .spec-row { grid-template-columns:1fr; gap:3px; padding:10px 0; } .spec-label { color:#25475e; } }
     @media (min-width:600px) { main { padding-top:34px; } .actions { grid-template-columns:1fr 1fr; } .actions .primary { grid-column:1/-1; } .settings-actions { grid-template-columns:repeat(3,1fr); } }
   </style>
 </head>
@@ -67,7 +69,7 @@
     <section id="progressPanel" class="panel hidden" aria-live="polite"><div id="progressStatus" class="status"></div></section>
 
     <section id="resultPanel" class="panel hidden" aria-live="polite">
-      <div class="result-head"><h2 id="resultTitle">Research Result</h2></div>
+      <div class="result-head"><h2 id="resultTitle">Research Result</h2><p id="resultType" class="result-type hidden"></p></div>
       <div id="verificationNotice" class="status hidden"></div>
       <div id="resultSections"></div>
       <section id="sourcesPanel" class="section hidden"><h3>Sources returned by Gemini</h3><p id="searchQueries" class="hint hidden"></p><ul id="sources" class="sources"></ul></section>
@@ -86,7 +88,7 @@
       const MAX_UPLOAD_BYTES = 7 * 1024 * 1024;
       const MAX_IMAGE_EDGE = 1920;
       const $ = id => document.getElementById(id);
-      const ui = { settingsButton:$('settingsButton'), settingsPanel:$('settingsPanel'), apiKey:$('apiKey'), modelId:$('modelId'), grounding:$('useGrounding'), settingsStatus:$('settingsStatus'), test:$('testConnection'), save:$('saveSettings'), clear:$('clearKey'), storageNotice:$('storageNotice'), query:$('query'), camera:$('cameraInput'), image:$('imageInput'), imageInfo:$('imageInfo'), preview:$('photoPreview'), previewImage:$('previewImage'), removePhoto:$('removePhoto'), search:$('searchButton'), progressPanel:$('progressPanel'), progress:$('progressStatus'), resultPanel:$('resultPanel'), resultTitle:$('resultTitle'), verification:$('verificationNotice'), resultSections:$('resultSections'), sourcesPanel:$('sourcesPanel'), sources:$('sources'), queries:$('searchQueries'), errorPanel:$('errorPanel'), error:$('errorMessage'), retry:$('retrySearch'), errorSettings:$('openSettingsFromError'), copy:$('copyResult'), newSearch:$('newSearch') };
+      const ui = { settingsButton:$('settingsButton'), settingsPanel:$('settingsPanel'), apiKey:$('apiKey'), modelId:$('modelId'), grounding:$('useGrounding'), settingsStatus:$('settingsStatus'), test:$('testConnection'), save:$('saveSettings'), clear:$('clearKey'), storageNotice:$('storageNotice'), query:$('query'), camera:$('cameraInput'), image:$('imageInput'), imageInfo:$('imageInfo'), preview:$('photoPreview'), previewImage:$('previewImage'), removePhoto:$('removePhoto'), search:$('searchButton'), progressPanel:$('progressPanel'), progress:$('progressStatus'), resultPanel:$('resultPanel'), resultTitle:$('resultTitle'), resultType:$('resultType'), verification:$('verificationNotice'), resultSections:$('resultSections'), sourcesPanel:$('sourcesPanel'), sources:$('sources'), queries:$('searchQueries'), errorPanel:$('errorPanel'), error:$('errorMessage'), retry:$('retrySearch'), errorSettings:$('openSettingsFromError'), copy:$('copyResult'), newSearch:$('newSearch') };
       let selectedImage = null;
       let lastRequest = null;
       let storageAvailable = true;
@@ -176,15 +178,43 @@ Pros and Cons: research the web before factual claims. Clearly distinguish objec
       function searchQueries(data) { return (data?.steps || []).filter(step => step.type === 'google_search_call').flatMap(step => step.arguments?.queries || []); }
       function hasGrounding(data) { return (data?.steps || []).some(step => step.type === 'google_search_call' || step.type === 'google_search_result') || citations(data).length > 0; }
 
+      function cleanListLine(line) { return line.trim().replace(/^(?:[-*•✓+−!]|\d+[.)])\s*/, '').trim(); }
+      function makeSpecificationDisplay(body) {
+        const grid = document.createElement('div'); grid.className = 'spec-grid';
+        const lines = body.split('\n').map(cleanListLine).filter(Boolean);
+        (lines.length ? lines : ['ไม่พบข้อมูลยืนยัน']).forEach(line => {
+          const match = line.match(/^(.{1,60}?)(?:\s*:\s*|\s+[—–-]\s+|\t+)(.+)$/);
+          if (!match) { const plain = document.createElement('div'); plain.className = 'plain-result-line'; plain.textContent = line; grid.append(plain); return; }
+          const row = document.createElement('div'); row.className = 'spec-row';
+          const label = document.createElement('div'); label.className = 'spec-label'; label.textContent = match[1].trim();
+          const value = document.createElement('div'); value.className = 'spec-value'; value.textContent = match[2].trim();
+          row.append(label, value); grid.append(row);
+        });
+        return grid;
+      }
+      function makeFindingList(body, kind) {
+        const list = document.createElement('div'); list.className = 'finding-list';
+        const lines = body.split('\n').map(cleanListLine).filter(Boolean);
+        (lines.length ? lines : ['ไม่พบข้อมูลยืนยัน']).forEach(line => {
+          const item = document.createElement('div'); item.className = `finding ${kind}`;
+          const mark = document.createElement('span'); mark.className = 'finding-mark'; mark.textContent = kind === 'pro' ? '✓' : '−';
+          const text = document.createElement('span'); text.textContent = line; item.append(mark, text); list.append(item);
+        });
+        return list;
+      }
+
       function renderResult(text, sourceItems, queryItems, grounded) {
         ui.resultSections.replaceChildren(); ui.sources.replaceChildren(); show(ui.resultPanel);
         const titleMatch = text.match(/^Equipment:\s*(.+)$/mi);
-        ui.resultTitle.textContent = titleMatch?.[1]?.trim() || 'Identified equipment';
+        const identified = titleMatch?.[1]?.trim() || 'Identified equipment';
+        const typeMatch = identified.match(/^(.*?)(?:\s+[—–-]\s+|\s*\(([^()]+)\)\s*)$/);
+        ui.resultTitle.textContent = typeMatch ? typeMatch[1].trim() : identified;
+        if (typeMatch) { ui.resultType.textContent = (typeMatch[2] || identified.slice(typeMatch[1].length).replace(/^\s*[—–-]\s*/, '')).trim(); show(ui.resultType); } else show(ui.resultType, false);
         const headingPattern = /^##\s+(.+)$/gm; const matches = [...text.matchAll(headingPattern)];
         const permitted = new Set(['Specifications', 'Pros', 'Cons']);
         const sections = matches.map((match, index) => ({ title:match[1].trim(), body:text.slice(match.index + match[0].length, index + 1 < matches.length ? matches[index + 1].index : text.length).trim() })).filter(section => permitted.has(section.title));
         if (!sections.length) sections.push({ title:'Specifications', body:'ไม่พบข้อมูลยืนยัน' });
-        sections.forEach(section => { const card = document.createElement('section'); card.className = 'section'; const heading = document.createElement('h3'); heading.textContent = section.title; const content = document.createElement('p'); content.textContent = section.body || 'ไม่พบข้อมูลยืนยัน'; card.append(heading, content); ui.resultSections.append(card); });
+        sections.forEach(section => { const card = document.createElement('section'); card.className = 'section'; const heading = document.createElement('h3'); heading.textContent = section.title; const body = section.body || 'ไม่พบข้อมูลยืนยัน'; const content = section.title === 'Specifications' ? makeSpecificationDisplay(body) : makeFindingList(body, section.title === 'Pros' ? 'pro' : 'con'); card.append(heading, content); ui.resultSections.append(card); });
         if (lastRequest?.settings.useGrounding && !grounded) setStatus(ui.verification, 'Grounding was requested, but Gemini did not return Google Search grounding information. The factual research could not be fully verified as web-grounded.', 'warning'); else if (grounded) setStatus(ui.verification, 'Google Search grounding information was returned. Sources from the response are listed below.', 'success'); else show(ui.verification, false);
         if (sourceItems.length || queryItems.length) { if (queryItems.length) { ui.queries.textContent = `Search queries: ${queryItems.join(' · ')}`; show(ui.queries); } else show(ui.queries, false); sourceItems.forEach((source, index) => { const li = document.createElement('li'); const a = document.createElement('a'); a.href = source.url; a.target = '_blank'; a.rel = 'noopener noreferrer'; a.textContent = `${index + 1}. ${source.title}`; li.append(a); ui.sources.append(li); }); show(ui.sourcesPanel); } else show(ui.sourcesPanel, false);
         lastCopyText = text + (sourceItems.length ? '\n\nSources\n' + sourceItems.map((s,i) => `${i+1}. ${s.title} — ${s.url}`).join('\n') : '');
