@@ -67,7 +67,7 @@
     <section id="progressPanel" class="panel hidden" aria-live="polite"><div id="progressStatus" class="status"></div></section>
 
     <section id="resultPanel" class="panel hidden" aria-live="polite">
-      <div class="result-head"><h2>Research Result</h2></div>
+      <div class="result-head"><h2 id="resultTitle">Research Result</h2></div>
       <div id="verificationNotice" class="status hidden"></div>
       <div id="resultSections"></div>
       <section id="sourcesPanel" class="section hidden"><h3>Sources returned by Gemini</h3><p id="searchQueries" class="hint hidden"></p><ul id="sources" class="sources"></ul></section>
@@ -86,7 +86,7 @@
       const MAX_UPLOAD_BYTES = 7 * 1024 * 1024;
       const MAX_IMAGE_EDGE = 1920;
       const $ = id => document.getElementById(id);
-      const ui = { settingsButton:$('settingsButton'), settingsPanel:$('settingsPanel'), apiKey:$('apiKey'), modelId:$('modelId'), grounding:$('useGrounding'), settingsStatus:$('settingsStatus'), test:$('testConnection'), save:$('saveSettings'), clear:$('clearKey'), storageNotice:$('storageNotice'), query:$('query'), camera:$('cameraInput'), image:$('imageInput'), imageInfo:$('imageInfo'), preview:$('photoPreview'), previewImage:$('previewImage'), removePhoto:$('removePhoto'), search:$('searchButton'), progressPanel:$('progressPanel'), progress:$('progressStatus'), resultPanel:$('resultPanel'), verification:$('verificationNotice'), resultSections:$('resultSections'), sourcesPanel:$('sourcesPanel'), sources:$('sources'), queries:$('searchQueries'), errorPanel:$('errorPanel'), error:$('errorMessage'), retry:$('retrySearch'), errorSettings:$('openSettingsFromError'), copy:$('copyResult'), newSearch:$('newSearch') };
+      const ui = { settingsButton:$('settingsButton'), settingsPanel:$('settingsPanel'), apiKey:$('apiKey'), modelId:$('modelId'), grounding:$('useGrounding'), settingsStatus:$('settingsStatus'), test:$('testConnection'), save:$('saveSettings'), clear:$('clearKey'), storageNotice:$('storageNotice'), query:$('query'), camera:$('cameraInput'), image:$('imageInput'), imageInfo:$('imageInfo'), preview:$('photoPreview'), previewImage:$('previewImage'), removePhoto:$('removePhoto'), search:$('searchButton'), progressPanel:$('progressPanel'), progress:$('progressStatus'), resultPanel:$('resultPanel'), resultTitle:$('resultTitle'), verification:$('verificationNotice'), resultSections:$('resultSections'), sourcesPanel:$('sourcesPanel'), sources:$('sources'), queries:$('searchQueries'), errorPanel:$('errorPanel'), error:$('errorMessage'), retry:$('retrySearch'), errorSettings:$('openSettingsFromError'), copy:$('copyResult'), newSearch:$('newSearch') };
       let selectedImage = null;
       let lastRequest = null;
       let storageAvailable = true;
@@ -143,23 +143,18 @@
       function researchPrompt(query, hasImage) {
         return `You are researching second-hand audio equipment for a buyer standing in a shop. The user's query is: "${query || '(no text query provided; rely on the image)'}". ${hasImage ? 'An equipment photo is attached.' : ''}
 
-You must research factual claims on the web before answering when Google Search is available. Prefer official manufacturer manuals, catalogs, and service manuals; use reputable audio publications and established databases secondarily. Do not invent any specification or citation. If sources conflict, say so. Marketplace listings are not primary technical sources.
+You must research factual claims on the web before answering when Google Search is available. Prefer official manufacturer manuals, catalogs, and specifications. Use reputable audio publications and established databases only when official material is unavailable. Do not invent any specification, advantage, disadvantage, or citation. If sources conflict or reliable information is insufficient, say so. Marketplace listings are not primary technical sources.
 
-If there is an image, first assess identification. State only visible brand, model, type, label text, and exterior details. Never infer internal electronic health from an exterior image. If identification is uncertain, explain why and recommend the most useful extra photo (rear label, model plate, front panel, or serial sticker). Do not claim a model is identified with certainty unless the visual evidence supports it.
+If there is an image, identify only what the visible evidence supports. Never infer that internal electronic components are healthy from an exterior image. If identification is uncertain, say so briefly in the equipment line and state the most useful additional photo needed.
 
-Return plain text only. Use these exact markdown headings, in this exact order, even if a section has limited data:
-## Model Identification
-## Technical Specifications
-## History / Context
-## Sound Character
-## Suitable For
+Return plain text only, in Thai. The first line must be exactly in this form: "Equipment: [identified brand, model, and type; include uncertainty briefly if needed]". Then use only these exact markdown headings, in this exact order:
+## Specifications
 ## Pros
 ## Cons
-## Second-Hand Inspection Checklist
-## Buying Summary
 
-Under Model Identification include Brand, Model, Type, Year introduced / production period, Country of manufacture (only if reliably known), and Series / related models.
-In Technical Specifications, include only fields relevant to this equipment type. Write "ไม่พบข้อมูลยืนยัน" for each important unverifiable specification. Clearly label subjective sound impressions as subjective/reported listening impressions, not facts. Do not call normal products legendary, rare, or collectible without reliable evidence. In Buying Summary, do not say simply buy/don't buy. Mention that value-for-money cannot be judged fully without an asking price if none was provided. Write the response in Thai, retaining official model names and technical terms where helpful.`;
+Specifications: automatically choose only fields relevant to the identified equipment type; omit irrelevant fields. Do not invent specifications. For each important specification that cannot be verified, write "ไม่พบข้อมูลยืนยัน". Prefer official sources, then reliable secondary sources.
+
+Pros and Cons: research the web before factual claims. Clearly distinguish objective facts from subjective reviewer/listener opinions. Do not present an opinion as universal fact. Do not exaggerate ordinary products as legendary, rare, or special without reliable evidence. If there is insufficient reliable information, say so. Do not add any other headings, conclusion, buying advice, inspection checklist, or sources list; sources are displayed separately by the application.`;
       }
 
       async function callGemini({ prompt, image, settings, testOnly = false }) {
@@ -183,8 +178,12 @@ In Technical Specifications, include only fields relevant to this equipment type
 
       function renderResult(text, sourceItems, queryItems, grounded) {
         ui.resultSections.replaceChildren(); ui.sources.replaceChildren(); show(ui.resultPanel);
+        const titleMatch = text.match(/^Equipment:\s*(.+)$/mi);
+        ui.resultTitle.textContent = titleMatch?.[1]?.trim() || 'Identified equipment';
         const headingPattern = /^##\s+(.+)$/gm; const matches = [...text.matchAll(headingPattern)];
-        const sections = matches.length ? matches.map((match, index) => ({ title:match[1].trim(), body:text.slice(match.index + match[0].length, index + 1 < matches.length ? matches[index + 1].index : text.length).trim() })) : [{ title:'Research Result', body:text }];
+        const permitted = new Set(['Specifications', 'Pros', 'Cons']);
+        const sections = matches.map((match, index) => ({ title:match[1].trim(), body:text.slice(match.index + match[0].length, index + 1 < matches.length ? matches[index + 1].index : text.length).trim() })).filter(section => permitted.has(section.title));
+        if (!sections.length) sections.push({ title:'Specifications', body:'ไม่พบข้อมูลยืนยัน' });
         sections.forEach(section => { const card = document.createElement('section'); card.className = 'section'; const heading = document.createElement('h3'); heading.textContent = section.title; const content = document.createElement('p'); content.textContent = section.body || 'ไม่พบข้อมูลยืนยัน'; card.append(heading, content); ui.resultSections.append(card); });
         if (lastRequest?.settings.useGrounding && !grounded) setStatus(ui.verification, 'Grounding was requested, but Gemini did not return Google Search grounding information. The factual research could not be fully verified as web-grounded.', 'warning'); else if (grounded) setStatus(ui.verification, 'Google Search grounding information was returned. Sources from the response are listed below.', 'success'); else show(ui.verification, false);
         if (sourceItems.length || queryItems.length) { if (queryItems.length) { ui.queries.textContent = `Search queries: ${queryItems.join(' · ')}`; show(ui.queries); } else show(ui.queries, false); sourceItems.forEach((source, index) => { const li = document.createElement('li'); const a = document.createElement('a'); a.href = source.url; a.target = '_blank'; a.rel = 'noopener noreferrer'; a.textContent = `${index + 1}. ${source.title}`; li.append(a); ui.sources.append(li); }); show(ui.sourcesPanel); } else show(ui.sourcesPanel, false);
